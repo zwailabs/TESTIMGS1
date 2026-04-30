@@ -31,13 +31,13 @@ struct AppBackground: View {
 			)
 
 			Circle()
-				fill(Color.white.opacity(0.14))
+				.fill(Color.white.opacity(0.14))
 				.frame(width: 260, height: 260)
 				.blur(radius: 90)
 				offset(x: -130, y: -240)
 
 			Circle()
-				fill(Color.white.opacity(0.09))
+				.fill(Color.white.opacity(0.09))
 				.frame(width: 220, height: 220)
 				.blur(radius: 85)
 				offset(x: 150, y: -110)
