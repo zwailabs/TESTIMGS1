@@ -1,0 +1,29 @@
+name: TodoMonochrome
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1" # iPhone only
+    SUPPORTS_MACCATALYST: "NO"
+    SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
+    CODE_SIGN_STYLE: Manual
+    DEVELOPMENT_TEAM: ""
+targets:
+  TodoMonochrome:
+    type: application
+    platform: iOS
+    sources:
+      - path: .
+        includes:
+          - "*.swift"
+      - path: Resources
+    info:
+      path: Info.plist
+schemes:
+  TodoMonochrome:
+    build:
+      targets:
+        TodoMonochrome: all

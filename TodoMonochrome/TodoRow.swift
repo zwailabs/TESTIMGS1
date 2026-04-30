@@ -1,0 +1,56 @@
+import SwiftUI
+
+struct TodoRow: View {
+	let todo: Todo
+	let onToggle: () -> Void
+	let onDelete: () -> Void
+
+	var body: some View {
+		HStack(spacing: 12) {
+			Button(action: onToggle) {
+				ZStack {
+					RoundedRectangle(cornerRadius: 8, style: .continuous)
+						.stroke(Theme.stroke, lineWidth: 1)
+						.frame(width: 28, height: 28)
+						.background(todo.isDone ? Theme.textPrimary.opacity(0.12) : Color.clear)
+						.clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+					if todo.isDone {
+						Image(systemName: "checkmark")
+							.font(.system(size: 12, weight: .bold))
+							.foregroundStyle(Theme.icon)
+					}
+				}
+			}
+			.buttonStyle(.plain)
+			.accessibilityLabel(todo.isDone ? "Mark as not done" : "Mark as done")
+
+			Text(todo.title)
+				.font(.system(size: 16, weight: .semibold, design: .rounded))
+				.foregroundStyle(todo.isDone ? Theme.textTertiary : Theme.textPrimary)
+				.strikethrough(todo.isDone, color: Theme.textTertiary)
+				.lineLimit(2)
+
+			Spacer(minLength: 8)
+
+			Button(action: onDelete) {
+				Image(systemName: "trash")
+					.font(.system(size: 14, weight: .semibold))
+					.foregroundStyle(Theme.iconMuted)
+					.frame(width: 30, height: 30)
+					.background(Theme.bgElevated)
+					.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+			}
+			.buttonStyle(.plain)
+			.accessibilityLabel("Delete")
+		}
+		.padding(14)
+		.background(Theme.card)
+		.overlay(
+			RoundedRectangle(cornerRadius: 18, style: .continuous)
+				.stroke(Theme.stroke, lineWidth: 1)
+		)
+		.clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+		.shadow(color: Theme.shadow, radius: 14, x: 0, y: 7)
+	}
+}
+

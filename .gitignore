@@ -1,0 +1,14 @@
+# Xcode / SwiftPM
+DerivedData/
+*.xcuserstate
+*.xccheckout
+*.xcworkspace
+*.xcscmblueprint
+*.xcodeproj
+*.ipa
+*.dSYM
+*.xcarchive
+
+# macOS
+.DS_Store
+
