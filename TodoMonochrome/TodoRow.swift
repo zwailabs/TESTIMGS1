@@ -10,9 +10,9 @@ struct TodoRow: View {
 			Button(action: onToggle) {
 				ZStack {
 					RoundedRectangle(cornerRadius: 8, style: .continuous)
-						.stroke(Theme.stroke, lineWidth: 1)
+						.stroke(todo.isDone ? Theme.strokeStrong : Theme.stroke, lineWidth: 1)
 						.frame(width: 28, height: 28)
-						.background(todo.isDone ? Theme.textPrimary.opacity(0.12) : Color.clear)
+						.background(todo.isDone ? Theme.textPrimary.opacity(0.16) : Color.white.opacity(0.04))
 						.clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 					if todo.isDone {
 						Image(systemName: "checkmark")
@@ -37,20 +37,12 @@ struct TodoRow: View {
 					.font(.system(size: 14, weight: .semibold))
 					.foregroundStyle(Theme.iconMuted)
 					.frame(width: 30, height: 30)
-					.background(Theme.bgElevated)
-					.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+					.glassCard(cornerRadius: 10)
 			}
 			.buttonStyle(.plain)
 			.accessibilityLabel("Delete")
 		}
 		.padding(14)
-		.background(Theme.card)
-		.overlay(
-			RoundedRectangle(cornerRadius: 18, style: .continuous)
-				.stroke(Theme.stroke, lineWidth: 1)
-		)
-		.clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-		.shadow(color: Theme.shadow, radius: 14, x: 0, y: 7)
+		.glassCard(cornerRadius: 22)
 	}
 }
-

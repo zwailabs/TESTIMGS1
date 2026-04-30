@@ -7,7 +7,7 @@ struct ContentView: View {
 	var body: some View {
 		NavigationStack {
 			ZStack {
-				Theme.bg.ignoresSafeArea()
+				AppBackground()
 				ScrollView {
 					LazyVStack(spacing: 12) {
 						header
@@ -40,12 +40,7 @@ struct ContentView: View {
 							.font(.system(size: 16, weight: .semibold))
 							.foregroundStyle(Theme.textPrimary)
 							.frame(width: 36, height: 36)
-							.background(Theme.bgElevated)
-							.overlay(
-								RoundedRectangle(cornerRadius: 12, style: .continuous)
-									.stroke(Theme.stroke, lineWidth: 1)
-							)
-							.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+							.glassCard(cornerRadius: 12)
 					}
 					.accessibilityLabel("Add Todo")
 				}
@@ -69,12 +64,7 @@ struct ContentView: View {
 				.foregroundStyle(Theme.textSecondary)
 				.padding(.horizontal, 12)
 				.padding(.vertical, 8)
-				.background(Theme.bgElevated)
-				.overlay(
-					RoundedRectangle(cornerRadius: 999, style: .continuous)
-						.stroke(Theme.stroke, lineWidth: 1)
-				)
-				.clipShape(RoundedRectangle(cornerRadius: 999, style: .continuous))
+				.glassCard(cornerRadius: 999)
 
 			Spacer()
 
@@ -89,12 +79,7 @@ struct ContentView: View {
 						.foregroundStyle(Theme.textPrimary)
 						.padding(.horizontal, 12)
 						.padding(.vertical, 8)
-						.background(Theme.bgElevated)
-						.overlay(
-							RoundedRectangle(cornerRadius: 999, style: .continuous)
-								.stroke(Theme.stroke, lineWidth: 1)
-						)
-						.clipShape(RoundedRectangle(cornerRadius: 999, style: .continuous))
+						.glassCard(cornerRadius: 999)
 				}
 			}
 		}
@@ -122,7 +107,7 @@ struct ContentView: View {
 		VStack(spacing: 10) {
 			Image(systemName: "checklist")
 				.font(.system(size: 28, weight: .semibold))
-				.foregroundStyle(Theme.iconMuted)
+				.foregroundStyle(Theme.icon)
 				.padding(.top, 10)
 
 			Text("No todos yet")
@@ -135,12 +120,6 @@ struct ContentView: View {
 		}
 		.frame(maxWidth: .infinity)
 		.padding(18)
-		.background(Theme.card)
-		.overlay(
-			RoundedRectangle(cornerRadius: 18, style: .continuous)
-				.stroke(Theme.stroke, lineWidth: 1)
-		)
-		.clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-		.shadow(color: Theme.shadow, radius: 16, x: 0, y: 8)
+		.glassCard(cornerRadius: 24)
 	}
 }

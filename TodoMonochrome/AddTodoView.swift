@@ -9,7 +9,7 @@ struct AddTodoView: View {
 
 	var body: some View {
 		ZStack {
-			Theme.bg.ignoresSafeArea()
+			AppBackground()
 			VStack(alignment: .leading, spacing: 14) {
 				HStack {
 					Text("New Todo")
@@ -32,21 +32,30 @@ struct AddTodoView: View {
 						.foregroundStyle(Theme.textPrimary)
 						.padding(.horizontal, 12)
 						.padding(.vertical, 12)
-						.background(Theme.card)
-						.overlay(
-							RoundedRectangle(cornerRadius: 14, style: .continuous)
-								.stroke(Theme.stroke, lineWidth: 1)
-						)
-						.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+						.glassCard(cornerRadius: 18)
 
 					Button(action: addAndDismiss) {
 						Text("Add")
 							.frame(maxWidth: .infinity)
 							.font(.system(size: 16, weight: .semibold, design: .rounded))
-							.foregroundStyle(Theme.bg)
+							.foregroundStyle(Color.black.opacity(0.92))
 							.padding(.vertical, 12)
-							.background(Theme.textPrimary)
-							.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+							.background(
+								LinearGradient(
+									colors: [
+										Color.white.opacity(0.95),
+										Color.white.opacity(0.72)
+									],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								),
+								in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+							)
+							.overlay(
+								RoundedRectangle(cornerRadius: 18, style: .continuous)
+									.stroke(Color.white.opacity(0.24), lineWidth: 1)
+							)
+							.shadow(color: Color.white.opacity(0.14), radius: 12, x: 0, y: 3)
 					}
 					.disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 					.opacity(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.45 : 1.0)
@@ -55,6 +64,8 @@ struct AddTodoView: View {
 				Spacer()
 			}
 			.padding(16)
+			.glassCard(cornerRadius: 28)
+			.padding(12)
 		}
 		.onAppear {
 			DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
@@ -68,4 +79,3 @@ struct AddTodoView: View {
 		dismiss()
 	}
 }
-
