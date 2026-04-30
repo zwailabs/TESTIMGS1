@@ -30,23 +30,29 @@ struct AppBackground: View {
 				endPoint: .bottomTrailing
 			)
 
-			Circle()
-				.fill(Color.white.opacity(0.14))
-				.frame(width: 260, height: 260)
-				.blur(radius: 70)
-				offset(x: -130, y: -240)
+			RadialGradient(
+				colors: [
+					Color.white.opacity(0.15),
+					Color.white.opacity(0.04),
+					.clear
+				],
+				center: .topLeading,
+				startRadius: 20,
+				endRadius: 340
+			)
+			.offset(x: -60, y: -90)
 
-			Circle()
-				.fill(Color.white.opacity(0.09))
-				.frame(width: 220, height: 220)
-				.blur(radius: 64)
-				offset(x: 150, y: -110)
-
-			Circle()
-				.fill(Color.white.opacity(0.08))
-				.frame(width: 240, height: 240)
-				.blur(radius: 76)
-				offset(x: 120, y: 280)
+			RadialGradient(
+				colors: [
+					Color.white.opacity(0.09),
+					Color.white.opacity(0.03),
+					.clear
+				],
+				center: .bottomTrailing,
+				startRadius: 30,
+				endRadius: 300
+			)
+			.offset(x: 60, y: 140)
 		}
 		.ignoresSafeArea()
 	}
@@ -71,9 +77,13 @@ struct GlassCardModifier: ViewModifier {
 						)
 					)
 			)
+			.overlay {
+				RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+					.fill(Color.white.opacity(0.025))
+			}
 			.overlay(
 				RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-					.strokeBorder(Theme.strokeStrong, lineWidth: 0.8)
+					.strokeBorder(Theme.strokeStrong, lineWidth: 0.75)
 			)
 			.overlay(alignment: .top) {
 				RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
@@ -83,9 +93,8 @@ struct GlassCardModifier: ViewModifier {
 							startPoint: .top,
 							endPoint: .center
 						),
-						lineWidth: 0.9
+						lineWidth: 0.7
 					)
-					.blur(radius: 0.2)
 			}
 			.overlay(alignment: .bottomTrailing) {
 				RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
@@ -95,10 +104,10 @@ struct GlassCardModifier: ViewModifier {
 							startPoint: .center,
 							endPoint: .bottomTrailing
 						),
-						lineWidth: 1
+						lineWidth: 0.8
 					)
 			}
-			.shadow(color: Theme.glassShadow, radius: 20, x: 0, y: 10)
+			.shadow(color: Theme.glassShadow, radius: 12, x: 0, y: 6)
 	}
 }
 
