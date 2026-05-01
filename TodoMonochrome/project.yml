@@ -18,6 +18,8 @@ targets:
   TodoMonochrome:
     type: application
     platform: iOS
+    entitlements:
+      path: TodoMonochrome.entitlements
     sources:
       - path: .
         includes:
@@ -34,6 +36,8 @@ targets:
   TodoMonochromeWidgetExtension:
     type: app-extension
     platform: iOS
+    entitlements:
+      path: ../TodoMonochromeWidgetExtension/TodoMonochromeWidgetExtension.entitlements
     sources:
       - path: ../TodoMonochromeWidgetExtension
         includes:

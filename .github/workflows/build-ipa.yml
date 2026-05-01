@@ -1,10 +1,9 @@
-name: Build unsigned IPA
+name: Build signed IPA
 
 on:
   workflow_dispatch:
   push:
     branches: [ "main" ]
-  pull_request:
 
 jobs:
   build:
@@ -12,6 +11,11 @@ jobs:
     defaults:
       run:
         working-directory: TodoMonochrome
+        shell: bash
+    env:
+      APP_BUNDLE_ID: com.example.TodoMonochrome
+      WIDGET_BUNDLE_ID: com.example.TodoMonochrome.widget
+      APP_GROUP_ID: group.com.example.TodoMonochrome.shared
 
     steps:
       - name: Checkout
@@ -28,11 +32,141 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build unsigned IPA
-        run: bash ./scripts/build-unsigned-ipa.sh
+      - name: Install signing assets
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          BUILD_CERTIFICATE_PASSWORD: ${{ secrets.BUILD_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          APP_PROVISION_PROFILE_BASE64: ${{ secrets.APP_PROVISION_PROFILE_BASE64 }}
+          WIDGET_PROVISION_PROFILE_BASE64: ${{ secrets.WIDGET_PROVISION_PROFILE_BASE64 }}
+          IOS_DEVICE_UDID: ${{ secrets.IOS_DEVICE_UDID }}
+        run: |
+          test -n "$APPLE_TEAM_ID"
+          test -n "$BUILD_CERTIFICATE_BASE64"
+          test -n "$BUILD_CERTIFICATE_PASSWORD"
+          test -n "$KEYCHAIN_PASSWORD"
+          test -n "$APP_PROVISION_PROFILE_BASE64"
+          test -n "$WIDGET_PROVISION_PROFILE_BASE64"
+
+          CERT_PATH="$RUNNER_TEMP/build_certificate.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+          APP_PROFILE_PATH="$RUNNER_TEMP/app.mobileprovision"
+          WIDGET_PROFILE_PATH="$RUNNER_TEMP/widget.mobileprovision"
+          APP_PROFILE_PLIST="$RUNNER_TEMP/app-profile.plist"
+          WIDGET_PROFILE_PLIST="$RUNNER_TEMP/widget-profile.plist"
+
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 -D > "$CERT_PATH"
+          echo -n "$APP_PROVISION_PROFILE_BASE64" | base64 -D > "$APP_PROFILE_PATH"
+          echo -n "$WIDGET_PROVISION_PROFILE_BASE64" | base64 -D > "$WIDGET_PROFILE_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$BUILD_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$APP_PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/"
+          cp "$WIDGET_PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/"
+
+          security cms -D -i "$APP_PROFILE_PATH" > "$APP_PROFILE_PLIST"
+          security cms -D -i "$WIDGET_PROFILE_PATH" > "$WIDGET_PROFILE_PLIST"
+
+          APP_PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print :Name' "$APP_PROFILE_PLIST")"
+          WIDGET_PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print :Name' "$WIDGET_PROFILE_PLIST")"
+          APP_PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$APP_PROFILE_PLIST")"
+          WIDGET_PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$WIDGET_PROFILE_PLIST")"
+          APP_IDENTIFIER="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$APP_PROFILE_PLIST")"
+          WIDGET_IDENTIFIER="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$WIDGET_PROFILE_PLIST")"
+
+          [[ "$APP_IDENTIFIER" == *".$APP_BUNDLE_ID" ]] || { echo "App provisioning profile does not match $APP_BUNDLE_ID"; exit 1; }
+          [[ "$WIDGET_IDENTIFIER" == *".$WIDGET_BUNDLE_ID" ]] || { echo "Widget provisioning profile does not match $WIDGET_BUNDLE_ID"; exit 1; }
+
+          if /usr/libexec/PlistBuddy -c 'Print :Entitlements:com.apple.security.application-groups:0' "$APP_PROFILE_PLIST" >/dev/null 2>&1; then
+            APP_GROUP_VALUE="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:com.apple.security.application-groups:0' "$APP_PROFILE_PLIST")"
+            [[ "$APP_GROUP_VALUE" == "$APP_GROUP_ID" ]] || { echo "App profile missing app group $APP_GROUP_ID"; exit 1; }
+          fi
+
+          if /usr/libexec/PlistBuddy -c 'Print :Entitlements:com.apple.security.application-groups:0' "$WIDGET_PROFILE_PLIST" >/dev/null 2>&1; then
+            WIDGET_GROUP_VALUE="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:com.apple.security.application-groups:0' "$WIDGET_PROFILE_PLIST")"
+            [[ "$WIDGET_GROUP_VALUE" == "$APP_GROUP_ID" ]] || { echo "Widget profile missing app group $APP_GROUP_ID"; exit 1; }
+          fi
+
+          if [[ -n "${IOS_DEVICE_UDID:-}" ]]; then
+            grep -q "$IOS_DEVICE_UDID" "$APP_PROFILE_PLIST" || { echo "iPhone UDID is missing from app provisioning profile"; exit 1; }
+            grep -q "$IOS_DEVICE_UDID" "$WIDGET_PROFILE_PLIST" || { echo "iPhone UDID is missing from widget provisioning profile"; exit 1; }
+          fi
+
+          {
+            echo "APPLE_TEAM_ID=$APPLE_TEAM_ID"
+            echo "KEYCHAIN_PATH=$KEYCHAIN_PATH"
+            echo "APP_PROFILE_NAME=$APP_PROFILE_NAME"
+            echo "WIDGET_PROFILE_NAME=$WIDGET_PROFILE_NAME"
+            echo "APP_PROFILE_UUID=$APP_PROFILE_UUID"
+            echo "WIDGET_PROFILE_UUID=$WIDGET_PROFILE_UUID"
+          } >> "$GITHUB_ENV"
+
+      - name: Create ExportOptions.plist
+        run: |
+          mkdir -p build/export
+          cat > build/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>development</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>teamID</key>
+            <string>${APPLE_TEAM_ID}</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>${APP_BUNDLE_ID}</key>
+              <string>${APP_PROFILE_NAME}</string>
+              <key>${WIDGET_BUNDLE_ID}</key>
+              <string>${WIDGET_PROFILE_NAME}</string>
+            </dict>
+            <key>stripSwiftSymbols</key>
+            <true/>
+            <key>compileBitcode</key>
+            <false/>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Archive signed app
+        env:
+          APPLE_TEAM_ID: ${{ env.APPLE_TEAM_ID }}
+          KEYCHAIN_PATH: ${{ env.KEYCHAIN_PATH }}
+        run: |
+          xcodebuild \
+            -project TodoMonochrome.xcodeproj \
+            -scheme TodoMonochrome \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination generic/platform=iOS \
+            -archivePath build/TodoMonochrome.xcarchive \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH" \
+            archive
+
+      - name: Export IPA
+        env:
+          KEYCHAIN_PATH: ${{ env.KEYCHAIN_PATH }}
+        run: |
+          xcodebuild \
+            -exportArchive \
+            -archivePath build/TodoMonochrome.xcarchive \
+            -exportPath build/export \
+            -exportOptionsPlist build/ExportOptions.plist \
+            OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TodoMonochrome-unsigned-ipa
-          path: TodoMonochrome/build/TodoMonochrome-unsigned.ipa
+          name: TodoMonochrome-signed-ipa
+          path: TodoMonochrome/build/export/*.ipa
