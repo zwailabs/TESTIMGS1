@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
+	@EnvironmentObject private var router: AppRouter
 	@StateObject private var store = TodoStore()
 	@State private var isPresentingAdd = false
 
@@ -55,6 +56,17 @@ struct ContentView: View {
 				}
 				.presentationDetents([.height(280), .medium])
 				.presentationDragIndicator(.visible)
+			}
+			.onAppear {
+				if router.shouldPresentAddTodo {
+					isPresentingAdd = true
+					router.shouldPresentAddTodo = false
+				}
+			}
+			.onReceive(router.$shouldPresentAddTodo) { shouldPresent in
+				guard shouldPresent else { return }
+				isPresentingAdd = true
+				router.shouldPresentAddTodo = false
 			}
 		}
 	}

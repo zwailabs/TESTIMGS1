@@ -5,12 +5,8 @@ import SwiftUI
 final class TodoStore: ObservableObject {
 	@Published private(set) var todos: [Todo] = []
 
-	private let fileURL: URL
-
-	init(filename: String = "todos.json") {
-		let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-		self.fileURL = documents.appendingPathComponent(filename)
-		load()
+	init() {
+		todos = TodoStorage.load()
 	}
 
 	var remainingCount: Int {
@@ -41,22 +37,10 @@ final class TodoStore: ObservableObject {
 	}
 
 	private func load() {
-		guard let data = try? Data(contentsOf: fileURL) else { return }
-		do {
-			todos = try JSONDecoder().decode([Todo].self, from: data)
-		} catch {
-			// If decoding fails, keep an empty list (avoid crashing).
-			todos = []
-		}
+		todos = TodoStorage.load()
 	}
 
 	private func save() {
-		do {
-			let data = try JSONEncoder().encode(todos)
-			try data.write(to: fileURL, options: [.atomic])
-		} catch {
-			// Best-effort persistence: ignore write failures.
-		}
+		TodoStorage.save(todos)
 	}
 }
-

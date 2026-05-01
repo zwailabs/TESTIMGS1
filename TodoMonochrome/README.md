@@ -25,8 +25,8 @@ Notes:
 - "Clear completed"
 - Local persistence to a JSON file in the app's Documents directory
 - Monochrome UI (no colored accents)
+- Home Screen widget with `+` shortcut and upcoming todos
 
 ## Requirements
 
 - iOS 16+ (uses `NavigationStack`)
-

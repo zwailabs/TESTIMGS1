@@ -31,22 +31,14 @@ struct AppBackground: View {
 }
 
 struct GlassGroup<Content: View>: View {
-	let spacing: CGFloat?
 	let content: Content
 
 	init(spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
-		self.spacing = spacing
 		self.content = content()
 	}
 
 	var body: some View {
-		if #available(iOS 26.0, *) {
-			GlassEffectContainer(spacing: spacing) {
-				content
-			}
-		} else {
-			content
-		}
+		content
 	}
 }
 
@@ -97,7 +89,7 @@ struct GlassCardModifier: ViewModifier {
 			glass = glass.tint(tint)
 		}
 		if interactive {
-			glass = glass.interactive(true)
+			glass = glass.interactive()
 		}
 		return glass
 	}
