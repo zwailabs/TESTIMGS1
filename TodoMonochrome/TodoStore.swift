@@ -1,6 +1,10 @@
 import Foundation
 import SwiftUI
 
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
+
 @MainActor
 final class TodoStore: ObservableObject {
 	@Published private(set) var todos: [Todo] = []
@@ -42,5 +46,14 @@ final class TodoStore: ObservableObject {
 
 	private func save() {
 		TodoStorage.save(todos)
+		reloadWidgets()
+	}
+
+	private func reloadWidgets() {
+		#if canImport(WidgetKit)
+		if #available(iOS 14.0, *) {
+			WidgetCenter.shared.reloadAllTimelines()
+		}
+		#endif
 	}
 }

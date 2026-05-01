@@ -1,9 +1,5 @@
 import Foundation
 
-#if canImport(WidgetKit)
-import WidgetKit
-#endif
-
 enum TodoStorage {
 	private static let filename = "todos.json"
 
@@ -29,7 +25,6 @@ enum TodoStorage {
 		do {
 			let data = try JSONEncoder().encode(todos)
 			try data.write(to: fileURL, options: [.atomic])
-			reloadWidgets()
 		} catch {
 			// Best-effort persistence: ignore write failures.
 		}
@@ -38,13 +33,4 @@ enum TodoStorage {
 	static func upcomingTodos(limit: Int) -> [Todo] {
 		Array(load().filter { !$0.isDone }.prefix(limit))
 	}
-
-	private static func reloadWidgets() {
-		#if canImport(WidgetKit)
-		if #available(iOS 14.0, *) {
-			WidgetCenter.shared.reloadAllTimelines()
-		}
-		#endif
-	}
 }
-
