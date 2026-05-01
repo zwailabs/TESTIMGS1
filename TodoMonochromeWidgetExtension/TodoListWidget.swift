@@ -101,7 +101,7 @@ struct TodoListWidgetView: View {
 			}
 		}
 		.padding(16)
-		.containerBackground(for: .widget) {
+		.background {
 			LinearGradient(
 				colors: [
 					Color.black,
@@ -113,4 +113,3 @@ struct TodoListWidgetView: View {
 		}
 	}
 }
-

@@ -54,7 +54,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.TodoMonochrome.widget
         SKIP_INSTALL: YES
         APPLICATION_EXTENSION_API_ONLY: YES
-        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "16.0"
         INFOPLIST_KEY_CFBundleDisplayName: Todo Widget
 schemes:
   TodoMonochrome:
