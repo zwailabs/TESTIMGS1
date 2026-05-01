@@ -10,9 +10,9 @@ struct TodoMonochromeApp: App {
 				.environmentObject(router)
 				.tint(Theme.textPrimary)
 				.preferredColorScheme(.dark)
-		}
-		.onOpenURL { url in
-			router.handle(url: url)
+				.onOpenURL { url in
+					router.handle(url: url)
+				}
 		}
 	}
 }
