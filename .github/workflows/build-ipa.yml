@@ -42,19 +42,24 @@ jobs:
           WIDGET_PROVISION_PROFILE_BASE64: ${{ secrets.WIDGET_PROVISION_PROFILE_BASE64 }}
           IOS_DEVICE_UDID: ${{ secrets.IOS_DEVICE_UDID }}
         run: |
-          test -n "$APPLE_TEAM_ID"
-          test -n "$BUILD_CERTIFICATE_BASE64"
-          test -n "$BUILD_CERTIFICATE_PASSWORD"
-          test -n "$KEYCHAIN_PASSWORD"
-          test -n "$APP_PROVISION_PROFILE_BASE64"
-          test -n "$WIDGET_PROVISION_PROFILE_BASE64"
-
           CERT_PATH="$RUNNER_TEMP/build_certificate.p12"
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
           APP_PROFILE_PATH="$RUNNER_TEMP/app.mobileprovision"
           WIDGET_PROFILE_PATH="$RUNNER_TEMP/widget.mobileprovision"
           APP_PROFILE_PLIST="$RUNNER_TEMP/app-profile.plist"
           WIDGET_PROFILE_PLIST="$RUNNER_TEMP/widget-profile.plist"
+
+          missing=()
+          [[ -n "$APPLE_TEAM_ID" ]] || missing+=("APPLE_TEAM_ID")
+          [[ -n "$BUILD_CERTIFICATE_BASE64" ]] || missing+=("BUILD_CERTIFICATE_BASE64")
+          [[ -n "$BUILD_CERTIFICATE_PASSWORD" ]] || missing+=("BUILD_CERTIFICATE_PASSWORD")
+          [[ -n "$KEYCHAIN_PASSWORD" ]] || missing+=("KEYCHAIN_PASSWORD")
+          [[ -n "$APP_PROVISION_PROFILE_BASE64" ]] || missing+=("APP_PROVISION_PROFILE_BASE64")
+          [[ -n "$WIDGET_PROVISION_PROFILE_BASE64" ]] || missing+=("WIDGET_PROVISION_PROFILE_BASE64")
+          if (( ${#missing[@]} > 0 )); then
+            echo "Missing required GitHub secrets: ${missing[*]}"
+            exit 1
+          fi
 
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 -D > "$CERT_PATH"
           echo -n "$APP_PROVISION_PROFILE_BASE64" | base64 -D > "$APP_PROFILE_PATH"
