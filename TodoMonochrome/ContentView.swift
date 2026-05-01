@@ -8,18 +8,20 @@ struct ContentView: View {
 		NavigationStack {
 			ZStack {
 				AppBackground()
-				ScrollView {
-					LazyVStack(spacing: 12) {
-						header
-						if store.todos.isEmpty {
-							emptyState
-						} else {
-							todoList
+				GlassGroup(spacing: 18) {
+					ScrollView {
+						LazyVStack(spacing: 12) {
+							header
+							if store.todos.isEmpty {
+								emptyState
+							} else {
+								todoList
+							}
 						}
+						.padding(.horizontal, 16)
+						.padding(.top, 12)
+						.padding(.bottom, 28)
 					}
-					.padding(.horizontal, 16)
-					.padding(.top, 12)
-					.padding(.bottom, 28)
 				}
 			}
 			.navigationTitle("")
@@ -40,7 +42,7 @@ struct ContentView: View {
 							.font(.system(size: 16, weight: .semibold))
 							.foregroundStyle(Theme.textPrimary)
 							.frame(width: 36, height: 36)
-							.glassCard(cornerRadius: 12)
+							.glassCard(cornerRadius: 12, interactive: true)
 					}
 					.accessibilityLabel("Add Todo")
 				}
@@ -64,7 +66,7 @@ struct ContentView: View {
 				.foregroundStyle(Theme.textSecondary)
 				.padding(.horizontal, 12)
 				.padding(.vertical, 8)
-				.glassCard(cornerRadius: 999)
+				.glassCard(cornerRadius: 999, tint: .white.opacity(0.08))
 
 			Spacer()
 
@@ -79,7 +81,7 @@ struct ContentView: View {
 						.foregroundStyle(Theme.textPrimary)
 						.padding(.horizontal, 12)
 						.padding(.vertical, 8)
-						.glassCard(cornerRadius: 999)
+						.glassCard(cornerRadius: 999, interactive: true)
 				}
 			}
 		}

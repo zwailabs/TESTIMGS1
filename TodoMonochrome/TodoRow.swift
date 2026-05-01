@@ -37,12 +37,12 @@ struct TodoRow: View {
 					.font(.system(size: 14, weight: .semibold))
 					.foregroundStyle(Theme.iconMuted)
 					.frame(width: 30, height: 30)
-					.glassCard(cornerRadius: 10)
+					.glassCard(cornerRadius: 10, interactive: true)
 			}
 			.buttonStyle(.plain)
 			.accessibilityLabel("Delete")
 		}
 		.padding(14)
-		.glassCard(cornerRadius: 22)
+		.glassCard(cornerRadius: 22, tint: .white.opacity(0.06))
 	}
 }

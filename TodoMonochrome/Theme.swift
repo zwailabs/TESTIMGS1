@@ -6,8 +6,6 @@ enum Theme {
 	static let card = Color.white.opacity(0.09)
 	static let stroke = Color.white.opacity(0.14)
 	static let strokeStrong = Color.white.opacity(0.26)
-	static let glassFill = Color.white.opacity(0.07)
-	static let glassHighlight = Color.white.opacity(0.18)
 	static let glassShadow = Color.black.opacity(0.42)
 	static let textPrimary = Color.white
 	static let textSecondary = Color(white: 0.72)
@@ -19,100 +17,94 @@ enum Theme {
 
 struct AppBackground: View {
 	var body: some View {
-		ZStack {
-			LinearGradient(
-				colors: [
-					Color(white: 0.02),
-					Color(white: 0.06),
-					Color(white: 0.035)
-				],
-				startPoint: .topLeading,
-				endPoint: .bottomTrailing
-			)
-
-			RadialGradient(
-				colors: [
-					Color.white.opacity(0.15),
-					Color.white.opacity(0.04),
-					.clear
-				],
-				center: .topLeading,
-				startRadius: 20,
-				endRadius: 340
-			)
-			.offset(x: -60, y: -90)
-
-			RadialGradient(
-				colors: [
-					Color.white.opacity(0.09),
-					Color.white.opacity(0.03),
-					.clear
-				],
-				center: .bottomTrailing,
-				startRadius: 30,
-				endRadius: 300
-			)
-			.offset(x: 60, y: 140)
-		}
+		LinearGradient(
+			colors: [
+				Color(white: 0.015),
+				Color(white: 0.055),
+				Color(white: 0.025)
+			],
+			startPoint: .topLeading,
+			endPoint: .bottomTrailing
+		)
 		.ignoresSafeArea()
 	}
 }
 
+struct GlassGroup<Content: View>: View {
+	let spacing: CGFloat?
+	let content: Content
+
+	init(spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
+		self.spacing = spacing
+		self.content = content()
+	}
+
+	var body: some View {
+		if #available(iOS 26.0, *) {
+			GlassEffectContainer(spacing: spacing) {
+				content
+			}
+		} else {
+			content
+		}
+	}
+}
+
 struct GlassCardModifier: ViewModifier {
+	@Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
 	var cornerRadius: CGFloat
+	var tint: Color?
+	var interactive: Bool
 
 	func body(content: Content) -> some View {
-		content
-			.background(
-				RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-					.fill(
-						LinearGradient(
-							colors: [
-								Color.white.opacity(0.16),
-								Color.white.opacity(0.08),
-								Color.black.opacity(0.10)
-							],
-							startPoint: .topLeading,
-							endPoint: .bottomTrailing
+		if reduceTransparency {
+			content
+				.background(Theme.card, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+				.overlay(
+					RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+						.stroke(Theme.stroke, lineWidth: 1)
+				)
+		} else if #available(iOS 26.0, *) {
+			content
+				.glassEffect(makeGlass(), in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+		} else {
+			content
+				.background(Theme.card, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+				.overlay(
+					RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+						.stroke(Theme.strokeStrong, lineWidth: 1)
+				)
+				.overlay(alignment: .top) {
+					RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+						.stroke(
+							LinearGradient(
+								colors: [Color.white.opacity(0.22), .clear],
+								startPoint: .top,
+								endPoint: .center
+							),
+							lineWidth: 0.6
 						)
-					)
-			)
-			.overlay {
-				RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-					.fill(Color.white.opacity(0.025))
-			}
-			.overlay(
-				RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-					.strokeBorder(Theme.strokeStrong, lineWidth: 0.75)
-			)
-			.overlay(alignment: .top) {
-				RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-					.stroke(
-						LinearGradient(
-							colors: [Color.white.opacity(0.34), .clear],
-							startPoint: .top,
-							endPoint: .center
-						),
-						lineWidth: 0.7
-					)
-			}
-			.overlay(alignment: .bottomTrailing) {
-				RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-					.stroke(
-						LinearGradient(
-							colors: [.clear, Color.black.opacity(0.18)],
-							startPoint: .center,
-							endPoint: .bottomTrailing
-						),
-						lineWidth: 0.8
-					)
-			}
-			.shadow(color: Theme.glassShadow, radius: 12, x: 0, y: 6)
+				}
+				.shadow(color: Theme.glassShadow, radius: 10, x: 0, y: 5)
+		}
+	}
+
+	@available(iOS 26.0, *)
+	private func makeGlass() -> Glass {
+		var glass = Glass.regular
+		if let tint {
+			glass = glass.tint(tint)
+		}
+		if interactive {
+			glass = glass.interactive(true)
+		}
+		return glass
 	}
 }
 
 extension View {
-	func glassCard(cornerRadius: CGFloat) -> some View {
-		modifier(GlassCardModifier(cornerRadius: cornerRadius))
+	func glassCard(cornerRadius: CGFloat, tint: Color? = nil, interactive: Bool = false) -> some View {
+		modifier(GlassCardModifier(cornerRadius: cornerRadius, tint: tint, interactive: interactive))
 	}
 }
